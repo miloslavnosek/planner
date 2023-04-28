@@ -53,6 +53,11 @@ func ConvertTasksToItems(tasks []task.Task) []list.Item {
 	return items
 }
 
+func updateContainerStyle(m *Model) {
+	inputContainerStyle = createContainerStyle(m.taskInput.Focused(), 80, 0)
+	listContainerStyle = createContainerStyle(!m.taskInput.Focused(), 80, 3)
+}
+
 func reloadTasks(m *Model, database *sql.DB) {
 	m.taskInput.Reset()
 	storedTasks, _ := task.GetTasks(database)
@@ -85,8 +90,7 @@ func InitialModel(db *sql.DB) Model {
 	m.taskInput.Focus()
 	m.taskList.DisableQuitKeybindings()
 
-	inputContainerStyle = createContainerStyle(m.taskInput.Focused(), 80, 3)
-	listContainerStyle = createContainerStyle(!m.taskInput.Focused(), 80, 3)
+	updateContainerStyle(&m)
 
 	return m
 }
@@ -134,8 +138,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.taskList, _ = m.taskList.Update(msg)
 	m.taskInput, _ = m.taskInput.Update(msg)
 
-	inputContainerStyle = createContainerStyle(m.taskInput.Focused(), 80, 3)
-	listContainerStyle = createContainerStyle(!m.taskInput.Focused(), 80, 3)
+	updateContainerStyle(&m)
 
 	return m, cmd
 }
