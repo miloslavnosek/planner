@@ -102,9 +102,12 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
+	isTaskInputFocused := m.taskInput.Focused()
+	isTaskListFocused := !m.taskInput.Focused()
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.taskInput.Focused() {
+		if isTaskInputFocused {
 			switch msg.String() {
 			case "enter":
 				_, err := task.AddTask(database, task.Task{Name: m.taskInput.Value()})
@@ -113,22 +116,35 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					reloadTasks(&m, database)
 				}
-			case "up", "esc":
+			case "up":
 				m.taskInput.Blur()
 			}
-		} else if !m.taskInput.Focused() {
+		} else if isTaskListFocused {
 			switch msg.String() {
 			case "down":
 				if m.taskList.Cursor() == len(m.taskList.Items())-1 {
 					m.taskInput.Focus()
 				}
+			case "d":
+				currentItem := m.taskList.Items()[m.taskList.Cursor()].(taskItem)
+
+				_, err := task.DeleteTask(database, currentItem.ID)
+				if err != nil {
+					fmt.Sprintf("Error deleting task: %v", err)
+				}
+
+				reloadTasks(&m, database)
 			}
 		}
 
+		// global keybindings
 		switch msg.String() {
+		case "esc":
+			m.taskInput.Blur()
 		case "ctrl+q":
 			return m, tea.Quit
 		}
+
 	case tea.WindowSizeMsg:
 		m.windowWidth = msg.Width
 		m.windowHeight = msg.Height
@@ -147,5 +163,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return listContainerStyle.Render(m.taskList.View()) + "\n" + inputContainerStyle.Render(m.taskInput.View())
+	return listContainerStyle.Render(m.taskList.View()) +
+		"\n" +
+		inputContainerStyle.Render(m.taskInput.View()) +
+		"\n" +
+		"(d)elete selected task / ctrl+(q)uit"
 }
