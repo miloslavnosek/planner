@@ -18,10 +18,6 @@ func main() {
 		log.Fatalf("Error initializing database: %v", err)
 	}
 
-	if err != nil {
-		log.Fatalf("Error adding task: %v", err)
-	}
-
 	p := tea.NewProgram(ui.InitialModel(db))
 	if err := p.Start(); err != nil {
 		fmt.Printf("Error running program: %v", err)
