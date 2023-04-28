@@ -106,7 +106,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if m.taskInput.Focused() {
 			switch msg.String() {
-			case "ctrl+enter":
+			case "enter":
 				_, err := task.AddTask(database, task.Task{Name: m.taskInput.Value()})
 				if err != nil {
 					fmt.Sprintf("Error adding task: %v", err)
