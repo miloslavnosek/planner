@@ -135,8 +135,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	m.taskList, _ = m.taskList.Update(msg)
-	m.taskInput, _ = m.taskInput.Update(msg)
+	if m.taskInput.Focused() {
+		m.taskInput, cmd = m.taskInput.Update(msg)
+	} else {
+		m.taskList, cmd = m.taskList.Update(msg)
+	}
 
 	updateContainerStyle(&m)
 
