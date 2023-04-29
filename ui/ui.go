@@ -4,16 +4,18 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"planner/task"
+	"planner/ui/add_task"
 	"strconv"
 )
 
 type Model struct {
-	taskList  list.Model
-	taskInput textinput.Model
+	mode string
+
+	taskList list.Model
+	addTask  add_task.Model
 
 	windowWidth  int
 	windowHeight int
@@ -53,13 +55,7 @@ func ConvertTasksToItems(tasks []task.Task) []list.Item {
 	return items
 }
 
-func updateContainerStyle(m *Model) {
-	inputContainerStyle = createContainerStyle(m.taskInput.Focused(), 80, 0)
-	listContainerStyle = createContainerStyle(!m.taskInput.Focused(), 80, 3)
-}
-
 func reloadTasks(m *Model, database *sql.DB) {
-	m.taskInput.Reset()
 	storedTasks, _ := task.GetTasks(database)
 	taskItems := ConvertTasksToItems(storedTasks)
 	m.taskList.SetItems(taskItems)
@@ -72,8 +68,9 @@ func InitialModel(db *sql.DB) Model {
 	taskItems := ConvertTasksToItems(storedTasks)
 
 	m := Model{
+		mode:         "normal", // "normal" or "add-task
 		taskList:     list.New([]list.Item{}, list.NewDefaultDelegate(), 80, 20),
-		taskInput:    textinput.New(),
+		addTask:      add_task.InitialModel(db),
 		windowWidth:  120,
 		windowHeight: 20,
 	}
@@ -82,15 +79,8 @@ func InitialModel(db *sql.DB) Model {
 	m.taskList.SetItems(taskItems)
 	m.taskList.SetShowHelp(false)
 	m.taskList.SetShowStatusBar(false)
-	m.taskList.KeyMap.CursorUp.SetKeys("up")
-	m.taskList.KeyMap.CursorDown.SetKeys("down")
-	m.taskList.KeyMap.PrevPage.SetKeys()
-	m.taskList.KeyMap.NextPage.SetKeys()
 
-	m.taskInput.Focus()
 	m.taskList.DisableQuitKeybindings()
-
-	updateContainerStyle(&m)
 
 	return m
 }
@@ -102,28 +92,21 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
-	isTaskInputFocused := m.taskInput.Focused()
-	isTaskListFocused := !m.taskInput.Focused()
-
 	switch msg := msg.(type) {
+	case add_task.AddTaskMsg:
+		_, err := task.AddTask(database, msg.Task)
+		if err != nil {
+			fmt.Sprintf("Error adding task: %v", err)
+		} else {
+			reloadTasks(&m, database)
+		}
+
 	case tea.KeyMsg:
-		if isTaskInputFocused {
-			switch msg.String() {
-			case "enter":
-				_, err := task.AddTask(database, task.Task{Name: m.taskInput.Value()})
-				if err != nil {
-					fmt.Sprintf("Error adding task: %v", err)
-				} else {
-					reloadTasks(&m, database)
-				}
-			case "up":
-				m.taskInput.Blur()
-			}
-		} else if isTaskListFocused {
+		if m.mode == "normal" {
 			switch msg.String() {
 			case "down":
 				if m.taskList.Cursor() == len(m.taskList.Items())-1 {
-					m.taskInput.Focus()
+					add_task.SetFocused(&m.addTask, true)
 				}
 			case "d":
 				currentItem := m.taskList.Items()[m.taskList.Cursor()].(taskItem)
@@ -139,33 +122,33 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// global keybindings
 		switch msg.String() {
+		case "n":
+			m.mode = "add-task"
+			add_task.SetFocused(&m.addTask, true)
 		case "esc":
-			m.taskInput.Blur()
+			m.mode = "normal"
+			add_task.SetFocused(&m.addTask, false)
 		case "ctrl+q":
 			return m, tea.Quit
 		}
-
-	case tea.WindowSizeMsg:
-		m.windowWidth = msg.Width
-		m.windowHeight = msg.Height
-		return m, nil
 	}
 
-	if m.taskInput.Focused() {
-		m.taskInput, cmd = m.taskInput.Update(msg)
-	} else {
-		m.taskList, cmd = m.taskList.Update(msg)
-	}
+	m.taskList, cmd = m.taskList.Update(msg)
 
-	updateContainerStyle(&m)
+	if m.mode == "add-task" {
+		var addTaskModel tea.Model
+
+		addTaskModel, cmd = m.addTask.Update(msg)
+		m.addTask = addTaskModel.(add_task.Model)
+	}
 
 	return m, cmd
 }
 
 func (m Model) View() string {
-	return listContainerStyle.Render(m.taskList.View()) +
+	return m.taskList.View() +
 		"\n" +
-		inputContainerStyle.Render(m.taskInput.View()) +
+		m.addTask.View() +
 		"\n" +
-		"(d)elete selected task / ctrl+(q)uit"
+		"[" + m.mode + "]" + " " + "(d)elete selected task / ctrl+(q)uit"
 }
