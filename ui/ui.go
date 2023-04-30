@@ -35,9 +35,6 @@ func (i taskItem) FilterValue() string { return strconv.FormatInt(i.ID, 20) }
 
 var (
 	database *sql.DB
-
-	inputContainerStyle lipgloss.Style
-	listContainerStyle  lipgloss.Style
 )
 
 func (m *Model) setMode(modeId int) {
