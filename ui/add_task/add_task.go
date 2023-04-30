@@ -79,8 +79,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.nameInput.Blur()
 			m.descInput.Focus()
 		case "shift+tab":
-			m.nameInput.Blur()
-			m.descInput.Focus()
+			m.nameInput.Focus()
+			m.descInput.Blur()
 		case "esc":
 			m.descInput.Blur()
 			m.nameInput.Blur()
