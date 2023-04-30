@@ -35,6 +35,9 @@ func (i taskItem) FilterValue() string { return strconv.FormatInt(i.ID, 20) }
 
 var (
 	database *sql.DB
+
+	normalModeStyle = lipgloss.NewStyle().Background(lipgloss.Color("#74c7ec")).Foreground(lipgloss.Color("#000")).MarginTop(1)
+	addModeStyle    = lipgloss.NewStyle().Background(lipgloss.Color("#eba0ac")).Foreground(lipgloss.Color("#000")).MarginTop(1)
 )
 
 func (m *Model) setMode(modeId int) {
@@ -55,9 +58,9 @@ func createHelpText(m *Model, modeId int) string {
 
 	switch modeId {
 	case 0:
-		helpText = prefix + " " + "(n)ew task / ctrl+(q)uit"
+		helpText = normalModeStyle.Render(prefix) + " " + "(n)ew task / ctrl+(q)uit"
 	case 1:
-		helpText = prefix + " " + "(tab) next input / (shift+tab) previous input / ctrl+(q)uit"
+		helpText = addModeStyle.Render(prefix) + " " + "(tab) next input / (shift+tab) previous input / ctrl+(q)uit"
 	}
 
 	return helpText
