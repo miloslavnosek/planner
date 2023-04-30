@@ -139,10 +139,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if m.mode.id == 0 {
 			switch msg.String() {
-			case "down":
-				if m.taskList.Cursor() == len(m.taskList.Items())-1 {
-					add_task.SetFocused(&m.addTask, true)
-				}
 			case "d":
 				currentItem := m.taskList.Items()[m.taskList.Cursor()].(taskItem)
 
