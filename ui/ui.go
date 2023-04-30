@@ -12,13 +12,19 @@ import (
 )
 
 type Model struct {
-	mode string
+	mode Mode
 
 	taskList list.Model
 	addTask  add_task.Model
+	helpText string
 
 	windowWidth  int
 	windowHeight int
+}
+
+type Mode struct {
+	id    int
+	label string
 }
 
 type taskItem task.Task
@@ -33,6 +39,32 @@ var (
 	inputContainerStyle lipgloss.Style
 	listContainerStyle  lipgloss.Style
 )
+
+func (m *Model) setMode(modeId int) {
+	var modeLabels = map[int]string{
+		0: "Normal",
+		1: "Add Task",
+	}
+
+	m.mode = Mode{
+		id:    modeId,
+		label: modeLabels[modeId],
+	}
+}
+
+func createHelpText(m *Model, modeId int) string {
+	var helpText string
+	prefix := "[" + m.mode.label + "]"
+
+	switch modeId {
+	case 0:
+		helpText = prefix + " " + "(n)ew task / ctrl+(q)uit"
+	case 1:
+		helpText = prefix + " " + "(tab) next input / (shift+tab) previous input / ctrl+(q)uit"
+	}
+
+	return helpText
+}
 
 func createContainerStyle(focused bool, width, height int) lipgloss.Style {
 	borderColor := lipgloss.Color("#CCC")
@@ -68,12 +100,15 @@ func InitialModel(db *sql.DB) Model {
 	taskItems := ConvertTasksToItems(storedTasks)
 
 	m := Model{
-		mode:         "normal", // "normal" or "add-task
 		taskList:     list.New([]list.Item{}, list.NewDefaultDelegate(), 80, 20),
 		addTask:      add_task.InitialModel(db),
 		windowWidth:  120,
 		windowHeight: 20,
 	}
+
+	m.helpText = createHelpText(&m, 0)
+
+	m.setMode(0)
 
 	m.taskList.SetShowTitle(false)
 	m.taskList.SetItems(taskItems)
@@ -102,7 +137,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.KeyMsg:
-		if m.mode == "normal" {
+		if m.mode.id == 0 {
 			switch msg.String() {
 			case "down":
 				if m.taskList.Cursor() == len(m.taskList.Items())-1 {
@@ -123,19 +158,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// global keybindings
 		switch msg.String() {
 		case "n":
-			m.mode = "add-task"
+			m.setMode(1)
 			add_task.SetFocused(&m.addTask, true)
 		case "esc":
-			m.mode = "normal"
+			m.setMode(0)
 			add_task.SetFocused(&m.addTask, false)
 		case "ctrl+q":
 			return m, tea.Quit
 		}
 	}
 
-	m.taskList, cmd = m.taskList.Update(msg)
+	m.helpText = createHelpText(&m, m.mode.id)
 
-	if m.mode == "add-task" {
+	if m.mode.id == 0 {
+		m.taskList, cmd = m.taskList.Update(msg)
+	}
+
+	if m.mode.id == 1 {
 		var addTaskModel tea.Model
 
 		addTaskModel, cmd = m.addTask.Update(msg)
@@ -150,5 +189,5 @@ func (m Model) View() string {
 		"\n" +
 		m.addTask.View() +
 		"\n" +
-		"[" + m.mode + "]" + " " + "(d)elete selected task / ctrl+(q)uit"
+		m.helpText
 }

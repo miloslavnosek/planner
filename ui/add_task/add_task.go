@@ -82,8 +82,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.nameInput.Focus()
 			m.descInput.Blur()
 		case "esc":
-			m.descInput.Blur()
-			m.nameInput.Blur()
+			clearForm(&m)
+			SetFocused(&m, false)
 		}
 	}
 
