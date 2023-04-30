@@ -155,14 +155,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		if m.mode.id != 1 {
+			switch msg.String() {
+			case "n":
+				m.setMode(1)
+				add_task.SetFocused(&m.addTask, true)
+				m.helpText = createHelpText(&m, m.mode.id)
+
+				return m, cmd
+			}
+		}
+
 		// global keybindings
 		switch msg.String() {
-		case "n":
-			m.setMode(1)
-			add_task.SetFocused(&m.addTask, true)
-			m.helpText = createHelpText(&m, m.mode.id)
-
-			return m, cmd
 		case "esc":
 			m.setMode(0)
 			add_task.SetFocused(&m.addTask, false)
