@@ -42,8 +42,8 @@ var (
 
 func (m *Model) setMode(modeId int) {
 	var modeLabels = map[int]string{
-		0: "Normal",
-		1: "Add Task",
+		0: "View",
+		1: "Add",
 	}
 
 	m.mode = Mode{
