@@ -60,7 +60,7 @@ func createHelpText(m *Model, modeId int) string {
 	case 0:
 		helpText = normalModeStyle.Render(prefix) + " " + "(n)ew task / ctrl+(q)uit"
 	case 1:
-		helpText = addModeStyle.Render(prefix) + " " + "(enter) submit / (tab) next input / (shift+tab) previous input / ctrl+(q)uit"
+		helpText = addModeStyle.Render(prefix) + " " + "(esc) cancel / (enter) submit / (tab) next input / (shift+tab) previous input / ctrl+(q)uit"
 	}
 
 	return helpText
