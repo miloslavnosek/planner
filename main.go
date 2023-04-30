@@ -5,7 +5,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"planner/database"
-	"planner/task"
 	"planner/ui"
 )
 
