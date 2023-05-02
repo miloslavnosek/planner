@@ -7,8 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"planner/task"
-	"planner/ui/task_entry"
-	"strconv"
+	"planner/ui/add_task"
 )
 
 type (
@@ -31,8 +30,7 @@ type (
 
 func (i taskItem) Title() string       { return i.Name }
 func (i taskItem) Description() string { return i.Desc }
-func (i taskItem) FilterValue() string { return strconv.FormatInt(i.ID, 20) }
-func (i taskItem) getTask() task.Task  { return task.Task(i) }
+func (i taskItem) FilterValue() string { return i.Name }
 
 var (
 	database *sql.DB
