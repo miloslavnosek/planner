@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"planner/task"
 	"planner/ui/add_task"
-	"strconv"
 )
 
 type Model struct {
@@ -31,7 +30,7 @@ type taskItem task.Task
 
 func (i taskItem) Title() string       { return i.Name }
 func (i taskItem) Description() string { return i.Desc }
-func (i taskItem) FilterValue() string { return strconv.FormatInt(i.ID, 20) }
+func (i taskItem) FilterValue() string { return i.Name }
 
 var (
 	database *sql.DB
