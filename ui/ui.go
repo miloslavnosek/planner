@@ -42,7 +42,7 @@ var (
 	editModeStyle   = lipgloss.NewStyle().Background(lipgloss.Color("#89b4fa")).Foreground(lipgloss.Color("#000")).MarginTop(1)
 )
 
-func (m *Model) setMode(modeId int) {
+func setMode(m *Model, modeId int) {
 	var modeLabels = map[int]string{
 		0: "View",
 		1: "Add",
@@ -104,7 +104,7 @@ func InitialModel(db *sql.DB) Model {
 
 	m.helpText = createHelpText(&m, 0)
 
-	m.setMode(0)
+	setMode(&m, 0)
 
 	m.taskList.SetShowTitle(false)
 	m.taskList.SetItems(taskItems)
@@ -136,7 +136,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			fmt.Sprintf("Error adding task: %v", err)
 		} else {
 			reloadTasks(&m, database)
-			m.setMode(0)
+			setMode(&m, 0)
 		}
 	case task_entry.EditTaskMsg:
 		_, err := task.UpdateTask(database, msg.Task)
@@ -144,7 +144,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			fmt.Sprintf("Error adding task: %v", err)
 		} else {
 			reloadTasks(&m, database)
-			m.setMode(0)
+			setMode(&m, 0)
 		}
 
 	case tea.KeyMsg:
@@ -158,13 +158,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				reloadTasks(&m, database)
 			case "n":
-				m.setMode(1)
+				setMode(&m, 1)
 				task_entry.SetFocused(&m.taskEntry, true)
 				m.helpText = createHelpText(&m, m.mode.id)
 
 				return m, cmd
 			case "e":
-				m.setMode(2)
+				setMode(&m, 2)
 				task_entry.SetFocused(&m.taskEntry, true)
 				task_entry.LoadTask(&m.taskEntry, getCurrentItem(&m).getTask())
 				m.helpText = createHelpText(&m, m.mode.id)
@@ -176,7 +176,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// global keybindings
 		switch msg.String() {
 		case "esc":
-			m.setMode(0)
+			setMode(&m, 0)
 			task_entry.SetFocused(&m.taskEntry, false)
 
 			m.taskEntry, _ = updateTaskEntryModel(&m, msg)
