@@ -11,23 +11,23 @@ import (
 	"strconv"
 )
 
-type Model struct {
-	mode Mode
+type (
+	Model struct {
+		mode Mode
 
-	taskList  list.Model
-	taskEntry task_entry.Model
-	helpText  string
+		taskList  list.Model
+		taskEntry task_entry.Model
+		helpText  string
 
-	windowWidth  int
-	windowHeight int
-}
-
-type Mode struct {
-	id    int
-	label string
-}
-
-type taskItem task.Task
+		windowWidth  int
+		windowHeight int
+	}
+	Mode struct {
+		id    int
+		label string
+	}
+	taskItem task.Task
+)
 
 func (i taskItem) Title() string       { return i.Name }
 func (i taskItem) Description() string { return i.Desc }

@@ -7,23 +7,23 @@ import (
 	"planner/task"
 )
 
-type Model struct {
-	isFocused bool
-	isEditing bool
+type (
+	Model struct {
+		isFocused bool
+		isEditing bool
 
-	editedTask task.Task
+		editedTask task.Task
 
-	nameInput textinput.Model
-	descInput textinput.Model
-}
-
-type AddTaskMsg struct {
-	Task task.Task
-}
-
-type EditTaskMsg struct {
-	Task task.Task
-}
+		nameInput textinput.Model
+		descInput textinput.Model
+	}
+	AddTaskMsg struct {
+		Task task.Task
+	}
+	EditTaskMsg struct {
+		Task task.Task
+	}
+)
 
 var (
 	containerStyle = lipgloss.NewStyle()
