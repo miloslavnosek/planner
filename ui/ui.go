@@ -84,7 +84,11 @@ func ConvertTasksToItems(tasks []task.Task) []list.Item {
 }
 
 func reloadTasks(m *Model, database *sql.DB) {
-	storedTasks, _ := task.GetTasks(database)
+	storedTasks, err := task.GetTasks(database)
+	if err != nil {
+		fmt.Printf("Error loading tasks: %v\n", err)
+		return
+	}
 	taskItems := ConvertTasksToItems(storedTasks)
 	m.taskList.SetItems(taskItems)
 }
@@ -92,15 +96,19 @@ func reloadTasks(m *Model, database *sql.DB) {
 func InitialModel(db *sql.DB) Model {
 	database = db
 
-	storedTasks, _ := task.GetTasks(db)
-	taskItems := ConvertTasksToItems(storedTasks)
-
 	m := Model{
 		taskList:     list.New([]list.Item{}, list.NewDefaultDelegate(), 80, 20),
 		taskEntry:    task_entry.InitialModel(),
 		windowWidth:  120,
 		windowHeight: 20,
 	}
+
+	storedTasks, err := task.GetTasks(db)
+	if err != nil {
+		fmt.Printf("Error getting tasks: %v\n", err)
+		return m
+	}
+	taskItems := ConvertTasksToItems(storedTasks)
 
 	m.helpText = createHelpText(&m, 0)
 
