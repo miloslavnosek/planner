@@ -133,7 +133,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case task_entry.AddTaskMsg:
 		_, err := task.AddTask(database, msg.Task)
 		if err != nil {
-			fmt.Sprintf("Error adding task: %v", err)
+			fmt.Printf("Error adding task: %v", err)
 		} else {
 			reloadTasks(&m, database)
 			setMode(&m, 0)
@@ -141,7 +141,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case task_entry.EditTaskMsg:
 		_, err := task.UpdateTask(database, msg.Task)
 		if err != nil {
-			fmt.Sprintf("Error adding task: %v", err)
+			fmt.Printf("Error adding task: %v", err)
 		} else {
 			reloadTasks(&m, database)
 			setMode(&m, 0)
@@ -153,7 +153,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "d":
 				_, err := task.DeleteTask(database, getCurrentItem(&m).ID)
 				if err != nil {
-					fmt.Sprintf("Error deleting task: %v", err)
+					fmt.Printf("Error deleting task: %v", err)
 				}
 
 				reloadTasks(&m, database)
