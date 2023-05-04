@@ -1,0 +1,79 @@
+package task_list
+
+import (
+	"database/sql"
+	"fmt"
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"planner/task"
+)
+
+type (
+	Model struct {
+		List list.Model
+	}
+	TaskItem     task.Task
+)
+
+var database *sql.DB
+
+func (i TaskItem) Title() string       { return i.Name }
+func (i TaskItem) Description() string { return i.Desc }
+func (i TaskItem) FilterValue() string { return i.Name }
+func (i TaskItem) getTask() task.Task  { return task.Task(i) }
+
+func SetItems(m *Model, tasks []task.Task) {
+	taskItems := ConvertTasksToItems(tasks)
+
+	m.List.SetItems(taskItems)
+}
+
+func GetCurrentTask(m *Model) task.Task {
+	currentItem := m.List.Items()[m.List.Cursor()].(TaskItem)
+
+	return currentItem.getTask()
+}
+
+func ConvertTasksToItems(tasks []task.Task) []list.Item {
+	items := make([]list.Item, len(tasks))
+	for i, t := range tasks {
+		items[i] = TaskItem(t)
+	}
+	return items
+}
+
+func ReloadTasks(m *Model, database *sql.DB) {
+	storedTasks, err := task.GetTasks(database)
+	if err != nil {
+		fmt.Printf("Error loading tasks: %v\n", err)
+		return
+	}
+	taskItems := ConvertTasksToItems(storedTasks)
+	m.List.SetItems(taskItems)
+}
+
+func InitialModel(db *sql.DB) Model {
+	database = db
+
+	m := Model{
+		List: list.New([]list.Item{}, list.NewDefaultDelegate(), 80, 20),
+	}
+
+	return m
+}
+
+func (m Model) Init() tea.Cmd {
+	return nil
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	m.List, cmd = m.List.Update(msg)
+
+	return m, cmd
+}
+
+func (m Model) View() string {
+	return m.List.View()
+}

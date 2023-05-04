@@ -3,17 +3,17 @@ package ui
 import (
 	"database/sql"
 	"fmt"
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"planner/task"
-	"planner/ui/add_task"
+	"planner/ui/task_entry"
+	"planner/ui/task_list"
 )
 
 type (
 	Model struct {
 		mode Mode
 
-		taskList  list.Model
+		taskList  task_list.Model
 		taskEntry task_entry.Model
 		helpText  string
 
@@ -24,16 +24,9 @@ type (
 		id    int
 		label string
 	}
-	taskItem task.Task
 )
 
-func (i taskItem) Title() string       { return i.Name }
-func (i taskItem) Description() string { return i.Desc }
-func (i taskItem) FilterValue() string { return i.Name }
-
-var (
-	database *sql.DB
-)
+var database *sql.DB
 
 func setMode(m *Model, modeId int) {
 	var modeLabels = map[int]string{
@@ -64,55 +57,31 @@ func createHelpText(m *Model, modeId int) string {
 	return helpText
 }
 
-func getCurrentItem(m *Model) taskItem {
-	return m.taskList.Items()[m.taskList.Cursor()].(taskItem)
-}
-
-func ConvertTasksToItems(tasks []task.Task) []list.Item {
-	items := make([]list.Item, len(tasks))
-	for i, t := range tasks {
-		items[i] = taskItem(t)
-	}
-	return items
-}
-
-func reloadTasks(m *Model, database *sql.DB) {
-	storedTasks, err := task.GetTasks(database)
-	if err != nil {
-		fmt.Printf("Error loading tasks: %v\n", err)
-		return
-	}
-	taskItems := ConvertTasksToItems(storedTasks)
-	m.taskList.SetItems(taskItems)
-}
-
 func InitialModel(db *sql.DB) Model {
 	database = db
 
 	m := Model{
-		taskList:     list.New([]list.Item{}, list.NewDefaultDelegate(), 80, 20),
+		taskList:     task_list.InitialModel(db),
 		taskEntry:    task_entry.InitialModel(),
 		windowWidth:  120,
 		windowHeight: 20,
 	}
+
+	m.helpText = createHelpText(&m, 0)
+
+	setMode(&m, 0)
 
 	storedTasks, err := task.GetTasks(db)
 	if err != nil {
 		fmt.Printf("Error getting tasks: %v\n", err)
 		return m
 	}
-	taskItems := ConvertTasksToItems(storedTasks)
 
-	m.helpText = createHelpText(&m, 0)
-
-	setMode(&m, 0)
-
-	m.taskList.SetShowTitle(false)
-	m.taskList.SetItems(taskItems)
-	m.taskList.SetShowHelp(false)
-	m.taskList.SetShowStatusBar(false)
-
-	m.taskList.DisableQuitKeybindings()
+	task_list.SetItems(&m.taskList, storedTasks)
+	m.taskList.List.SetShowTitle(false)
+	m.taskList.List.SetShowHelp(false)
+	m.taskList.List.SetShowStatusBar(false)
+	m.taskList.List.DisableQuitKeybindings()
 
 	return m
 }
@@ -121,6 +90,12 @@ func updateTaskEntryModel(m *Model, msg tea.Msg) (task_entry.Model, tea.Cmd) {
 	addTaskModel, cmd := m.taskEntry.Update(msg)
 
 	return addTaskModel.(task_entry.Model), cmd
+}
+
+func updateTaskListModel(m *Model, msg tea.Msg) (task_list.Model, tea.Cmd) {
+	taskListModel, cmd := m.taskList.Update(msg)
+
+	return taskListModel.(task_list.Model), cmd
 }
 
 func (m Model) Init() tea.Cmd {
@@ -136,7 +111,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			fmt.Printf("Error adding task: %v", err)
 		} else {
-			reloadTasks(&m, database)
+			task_list.ReloadTasks(&m.taskList, database)
 			setMode(&m, 0)
 		}
 	case task_entry.EditTaskMsg:
@@ -144,7 +119,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			fmt.Printf("Error adding task: %v", err)
 		} else {
-			reloadTasks(&m, database)
+			task_list.ReloadTasks(&m.taskList, database)
 			setMode(&m, 0)
 		}
 
@@ -152,12 +127,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.mode.id == 0 {
 			switch msg.String() {
 			case "d":
-				_, err := task.DeleteTask(database, getCurrentItem(&m).ID)
+				_, err := task.DeleteTask(database, task_list.GetCurrentTask(&m.taskList).ID)
 				if err != nil {
 					fmt.Printf("Error deleting task: %v", err)
 				}
 
-				reloadTasks(&m, database)
+				task_list.ReloadTasks(&m.taskList, database)
 			case "n":
 				setMode(&m, 1)
 				task_entry.SetFocused(&m.taskEntry, true)
@@ -167,7 +142,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "e":
 				setMode(&m, 2)
 				task_entry.SetFocused(&m.taskEntry, true)
-				task_entry.LoadTask(&m.taskEntry, getCurrentItem(&m).getTask())
+				task_entry.LoadTask(&m.taskEntry, task_list.GetCurrentTask(&m.taskList))
 				m.helpText = createHelpText(&m, m.mode.id)
 
 				return m, cmd
@@ -189,7 +164,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.helpText = createHelpText(&m, m.mode.id)
 
 	if m.mode.id == 0 {
-		m.taskList, cmd = m.taskList.Update(msg)
+		m.taskList, cmd = updateTaskListModel(&m, msg)
 	}
 
 	if m.mode.id == 1 || m.mode.id == 2 {
