@@ -1,18 +1,21 @@
 package ui
 
-import "github.com/charmbracelet/lipgloss"
+import lg "github.com/charmbracelet/lipgloss"
 
 var (
-	normalModeStyle = lipgloss.NewStyle().
-			Background(lipgloss.Color("#74c7ec")).
-			Foreground(lipgloss.Color("#000")).
+	normalModeStyle = lg.NewStyle().
+			Background(lg.Color("#a6e3a1")).
+			Foreground(lg.Color("#000")).
 			MarginTop(1)
-	addModeStyle = lipgloss.NewStyle().
-			Background(lipgloss.Color("#eba0ac")).
-			Foreground(lipgloss.Color("#000")).
+	addModeStyle = lg.NewStyle().
+			Background(lg.Color("#74c7ec")).
+			Foreground(lg.Color("#000")).
 			MarginTop(1)
-	editModeStyle = lipgloss.NewStyle().
-			Background(lipgloss.Color("#89b4fa")).
-			Foreground(lipgloss.Color("#000")).
+	editModeStyle = lg.NewStyle().
+			Background(lg.Color("#fab387")).
+			Foreground(lg.Color("#000")).
 			MarginTop(1)
+	statusBarStyle = lg.NewStyle().Foreground(lg.Color("#585b70"))
+
+	windowStyle = lg.NewStyle().Padding(1)
 )

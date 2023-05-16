@@ -12,7 +12,7 @@ type (
 	Model struct {
 		List list.Model
 	}
-	TaskItem     task.Task
+	TaskItem task.Task
 )
 
 var database *sql.DB
@@ -21,6 +21,20 @@ func (i TaskItem) Title() string       { return i.Name }
 func (i TaskItem) Description() string { return i.Desc }
 func (i TaskItem) FilterValue() string { return i.Name }
 func (i TaskItem) getTask() task.Task  { return task.Task(i) }
+
+func newTaskListDelegate() list.DefaultDelegate {
+	d := list.NewDefaultDelegate()
+
+	d.Styles.SelectedTitle = selectedTitleStyle
+	d.Styles.SelectedDesc = selectedDescStyle
+
+	d.Styles.FilterMatch = filterMatchStyle
+
+	d.Styles.NormalTitle = normalTitleStyle
+	d.Styles.NormalDesc = normalDescStyle
+
+	return d
+}
 
 func SetItems(m *Model, tasks []task.Task) {
 	taskItems := ConvertTasksToItems(tasks)
@@ -55,8 +69,10 @@ func ReloadTasks(m *Model, database *sql.DB) {
 func InitialModel(db *sql.DB) Model {
 	database = db
 
+	l := list.New([]list.Item{}, newTaskListDelegate(), 80, 20)
+
 	m := Model{
-		List: list.New([]list.Item{}, list.NewDefaultDelegate(), 80, 20),
+		List: l,
 	}
 
 	return m

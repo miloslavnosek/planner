@@ -47,11 +47,11 @@ func createHelpText(m *Model, modeId int) string {
 
 	switch modeId {
 	case 0:
-		helpText = normalModeStyle.Render(prefix) + " " + "(n)ew task / (e)dit task / ctrl+(q)uit"
+		helpText = normalModeStyle.Render(prefix) + statusBarStyle.Render(" "+"(n)ew task / (e)dit task / ctrl+(q)uit")
 	case 1:
-		helpText = addModeStyle.Render(prefix) + " " + "(esc) cancel / (enter) submit / (tab) next input / (shift+tab) previous input / ctrl+(q)uit"
+		helpText = addModeStyle.Render(prefix) + statusBarStyle.Render(" "+"(esc) cancel / (enter) submit / (tab) next input / (shift+tab) previous input / ctrl+(q)uit")
 	case 2:
-		helpText = editModeStyle.Render(prefix) + " " + "(esc) cancel / (enter) submit / (tab) next input / (shift+tab) previous input / ctrl+(q)uit"
+		helpText = editModeStyle.Render(prefix) + statusBarStyle.Render(" "+"(esc) cancel / (enter) submit / (tab) next input / (shift+tab) previous input / ctrl+(q)uit")
 	}
 
 	return helpText
@@ -78,9 +78,9 @@ func InitialModel(db *sql.DB) Model {
 	}
 
 	task_list.SetItems(&m.taskList, storedTasks)
+	m.taskList.List.SetShowStatusBar(false)
 	m.taskList.List.SetShowTitle(false)
 	m.taskList.List.SetShowHelp(false)
-	m.taskList.List.SetShowStatusBar(false)
 	m.taskList.List.DisableQuitKeybindings()
 
 	return m
@@ -175,9 +175,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return m.taskList.View() +
-		"\n" +
-		m.taskEntry.View() +
-		"\n" +
-		m.helpText
+	return windowStyle.Render(
+		m.taskList.View() +
+			"\n" +
+			m.taskEntry.View() +
+			"\n" +
+			m.helpText,
+	)
 }
