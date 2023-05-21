@@ -73,9 +73,14 @@ func SetFocused(m *Model, focus bool) {
 }
 
 func InitialModel() Model {
+	nameInput := textinput.New()
+	nameInput.PlaceholderStyle = nameInputPlaceholderStyle
+	descInput := textinput.New()
+	descInput.PlaceholderStyle = descriptionInputPlaceholderStyle
+
 	m := Model{
-		nameInput: textinput.New(),
-		descInput: textinput.New(),
+		nameInput: nameInput,
+		descInput: descInput,
 	}
 
 	m.nameInput.Placeholder = "name of the task"
