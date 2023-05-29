@@ -4,13 +4,41 @@ import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"log"
+	"os"
+	"path/filepath"
 	"planner/database"
 	"planner/ui"
+	"runtime"
 )
 
+func getDatabasePath() string {
+	var dbDir string
+
+	switch runtime.GOOS {
+	case "linux":
+		dbDir = filepath.Join(os.Getenv("HOME"), ".config", "io.github.miloslavnosek.planner")
+		os.MkdirAll(dbDir, 0755)
+
+	case "darwin":
+		dbDir = filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "io.github.miloslavnosek.planner")
+		os.MkdirAll(dbDir, 0755)
+
+	case "windows":
+		dbDir = filepath.Join(os.Getenv("LOCALAPPDATA"), "io.github.miloslavnosek.planner")
+		os.MkdirAll(dbDir, 0755)
+
+	default:
+		fmt.Println("Unsupported operating system")
+		os.Exit(1)
+	}
+
+	dbPath := filepath.Join(dbDir, "planner.db")
+
+	return dbPath
+}
+
 func main() {
-	// todo - this should be in os-specific config directory
-	dbPath := "./planner.db"
+	dbPath := getDatabasePath()
 
 	db, err := database.InitDB(dbPath)
 	if err != nil {
