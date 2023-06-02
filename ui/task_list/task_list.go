@@ -66,6 +66,16 @@ func ReloadTasks(m *Model, database *sql.DB) {
 	m.List.SetItems(taskItems)
 }
 
+func ToggleTaskCompleted(m *Model, database *sql.DB, selectedTask task.Task) {
+	selectedTask.IsDone = !selectedTask.IsDone
+	_, err := task.UpdateTask(database, selectedTask)
+	if err != nil {
+		fmt.Printf("Error toggling task completed: %v\n", err)
+		return
+	}
+	ReloadTasks(m, database)
+}
+
 func InitialModel(db *sql.DB) Model {
 	database = db
 

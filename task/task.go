@@ -15,7 +15,7 @@ type Task struct {
 }
 
 func GetTasks(db *sql.DB) ([]Task, error) {
-	rows, err := db.Query("SELECT id, name, description, due_date, should_notify FROM tasks")
+	rows, err := db.Query("SELECT id, name, description, due_date, should_notify, is_done FROM tasks")
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func GetTasks(db *sql.DB) ([]Task, error) {
 	for rows.Next() {
 		var t Task
 		var dueDate sql.NullString
-		err := rows.Scan(&t.ID, &t.Name, &t.Desc, &dueDate, &t.ShouldNotify)
+		err := rows.Scan(&t.ID, &t.Name, &t.Desc, &dueDate, &t.ShouldNotify, &t.IsDone)
 		if err != nil {
 			return nil, err
 		}

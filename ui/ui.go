@@ -169,6 +169,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.helpText = createHelpText(&m, m.mode.id)
 
 				return m, cmd
+			case " ":
+				task_list.ToggleTaskCompleted(&m.inProgressTaskList, database, task_list.GetCurrentTask(&m.inProgressTaskList))
+
+				task_list.ReloadTasks(&m.completedTaskList, database)
 			}
 		}
 
