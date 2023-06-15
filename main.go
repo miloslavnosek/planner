@@ -13,26 +13,33 @@ import (
 
 func getDatabasePath() string {
 	var dbDir string
+	var dbPath string
 
-	switch runtime.GOOS {
-	case "linux":
-		dbDir = filepath.Join(os.Getenv("HOME"), ".local", "share", "io.github.miloslavnosek.planner")
-		os.MkdirAll(dbDir, 0755)
+	if os.Getenv("PLANNER_ENV") == "dev" {
+		dbDir = "dev_db"
 
-	case "darwin":
-		dbDir = filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "io.github.miloslavnosek.planner")
-		os.MkdirAll(dbDir, 0755)
+		dbPath = filepath.Join(dbDir, "planner.dev.db")
+	} else {
+		switch runtime.GOOS {
+		case "linux":
+			dbDir = filepath.Join(os.Getenv("HOME"), ".local", "share", "io.github.miloslavnosek.planner")
+			os.MkdirAll(dbDir, 0755)
 
-	case "windows":
-		dbDir = filepath.Join(os.Getenv("LOCALAPPDATA"), "io.github.miloslavnosek.planner")
-		os.MkdirAll(dbDir, 0755)
+		case "darwin":
+			dbDir = filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "io.github.miloslavnosek.planner")
+			os.MkdirAll(dbDir, 0755)
 
-	default:
-		fmt.Println("Unsupported operating system")
-		os.Exit(1)
+		case "windows":
+			dbDir = filepath.Join(os.Getenv("LOCALAPPDATA"), "io.github.miloslavnosek.planner")
+			os.MkdirAll(dbDir, 0755)
+
+		default:
+			fmt.Println("Unsupported operating system")
+			os.Exit(1)
+		}
+
+		dbPath = filepath.Join(dbDir, "planner.db")
 	}
-
-	dbPath := filepath.Join(dbDir, "planner.db")
 
 	return dbPath
 }
