@@ -16,7 +16,7 @@ func getDatabasePath() string {
 
 	switch runtime.GOOS {
 	case "linux":
-		dbDir = filepath.Join(os.Getenv("HOME"), ".config", "io.github.miloslavnosek.planner")
+		dbDir = filepath.Join(os.Getenv("HOME"), ".local", "share", "io.github.miloslavnosek.planner")
 		os.MkdirAll(dbDir, 0755)
 
 	case "darwin":
